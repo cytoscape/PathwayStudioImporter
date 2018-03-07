@@ -22,7 +22,7 @@
             <visualProperty name="NODE_CUSTOMGRAPHICS_6" default="org.cytoscape.ding.customgraphics.NullCustomGraphics,0,[ Remove Graphics ],"/>
             <visualProperty name="NODE_CUSTOMGRAPHICS_POSITION_5" default="C,C,c,0.00,0.00"/>
             <visualProperty name="NODE_HEIGHT" default="35.0">
-                <discreteMapping attributeType="string" attributeName="ObjectType">
+                <discreteMapping attributeType="string" attributeName="Object Type">
                     <discreteMappingEntry value="50.0" attributeValue="Small Molecule"/>
                     <discreteMappingEntry value="50.0" attributeValue="Treatment"/>
                     <discreteMappingEntry value="50.0" attributeValue="Functional Class"/>
@@ -45,7 +45,7 @@
             <visualProperty name="NODE_CUSTOMGRAPHICS_SIZE_7" default="50.0"/>
             <visualProperty name="NODE_SELECTED_PAINT" default="#FFFF00"/>
             <visualProperty name="NODE_WIDTH" default="75.0">
-                <discreteMapping attributeType="string" attributeName="ObjectType">
+                <discreteMapping attributeType="string" attributeName="Object Type">
                     <discreteMappingEntry value="50.0" attributeValue="Small Molecule"/>
                     <discreteMappingEntry value="50.0" attributeValue="Treatment"/>
                     <discreteMappingEntry value="60.0" attributeValue="Functional Class"/>
@@ -68,7 +68,7 @@
             <visualProperty name="COMPOUND_NODE_SHAPE" default="ROUND_RECTANGLE"/>
             <visualProperty name="NODE_VISIBLE" default="true"/>
             <visualProperty name="NODE_FILL_COLOR" default="#89D0F5">
-                <discreteMapping attributeType="string" attributeName="ObjectType">
+                <discreteMapping attributeType="string" attributeName="Object Type">
                     <discreteMappingEntry value="#00FF00" attributeValue="Small Molecule"/>
                     <discreteMappingEntry value="#0000FF" attributeValue="Treatment"/>
                     <discreteMappingEntry value="#FF9900" attributeValue="Functional Class"/>
@@ -79,7 +79,7 @@
                 </discreteMapping>
             </visualProperty>
             <visualProperty name="NODE_SHAPE" default="ROUND_RECTANGLE">
-                <discreteMapping attributeType="string" attributeName="ObjectType">
+                <discreteMapping attributeType="string" attributeName="Object Type">
                     <discreteMappingEntry value="ELLIPSE" attributeValue="Small Molecule"/>
                     <discreteMappingEntry value="TRIANGLE" attributeValue="Treatment"/>
                     <discreteMappingEntry value="RECTANGLE" attributeValue="Disease"/>
@@ -120,7 +120,7 @@
             <visualProperty name="NODE_CUSTOMGRAPHICS_SIZE_5" default="50.0"/>
             <visualProperty name="NODE_TOOLTIP" default=""/>
             <visualProperty name="NODE_CUSTOMGRAPHICS_1" default="org.cytoscape.ding.customgraphics.NullCustomGraphics,0,[ Remove Graphics ],">
-                <discreteMapping attributeType="string" attributeName="ObjectType">
+                <discreteMapping attributeType="string" attributeName="Object Type">
                     <discreteMappingEntry value="org.cytoscape.RadialGradient:{&quot;cy_gradientFractions&quot;:[0.0,1.0],&quot;cy_gradientColors&quot;:[&quot;#FFFFFF&quot;,&quot;#339900&quot;]}" attributeValue="Small Molecule"/>
                     <discreteMappingEntry value="org.cytoscape.RadialGradient:{&quot;cy_gradientFractions&quot;:[0.0,1.0],&quot;cy_gradientColors&quot;:[&quot;#FFFFFF&quot;,&quot;#6699FF&quot;]}" attributeValue="Treatment"/>
                     <discreteMappingEntry value="org.cytoscape.LinearGradient:{&quot;cy_angle&quot;:90.0,&quot;cy_gradientFractions&quot;:[0.0,0.5,1.0],&quot;cy_gradientColors&quot;:[&quot;#CC00CC&quot;,&quot;#FFFFFF&quot;,&quot;#CC00CC&quot;]}" attributeValue="Disease"/>
@@ -136,10 +136,9 @@
             <visualProperty name="NODE_PAINT" default="#1E90FF"/>
         </node>
         <edge>
-            <dependency name="arrowColorMatchesEdge" value="false"/>
+            <dependency name="arrowColorMatchesEdge" value="true"/>
             <visualProperty name="EDGE_SELECTED_PAINT" default="#FF0000"/>
             <visualProperty name="EDGE_SOURCE_ARROW_SELECTED_PAINT" default="#FFFF00"/>
-            <visualProperty name="EDGE_TARGET_ARROW_UNSELECTED_PAINT" default="#000000"/>
             <visualProperty name="EDGE_LABEL_COLOR" default="#000000"/>
             <visualProperty name="EDGE_LABEL" default=""/>
             <visualProperty name="EDGE_TARGET_ARROW_SELECTED_PAINT" default="#FFFF00"/>
@@ -148,7 +147,6 @@
             <visualProperty name="EDGE_TOOLTIP" default=""/>
             <visualProperty name="EDGE_SOURCE_ARROW_UNSELECTED_PAINT" default="#000000"/>
             <visualProperty name="EDGE_SOURCE_ARROW_SHAPE" default="NONE"/>
-            <visualProperty name="EDGE_UNSELECTED_PAINT" default="#404040"/>
             <visualProperty name="EDGE_BEND" default=""/>
             <visualProperty name="EDGE_LABEL_FONT_SIZE" default="10"/>
             <visualProperty name="EDGE_TARGET_ARROW_SIZE" default="6.0"/>
@@ -159,7 +157,7 @@
             <visualProperty name="EDGE_SELECTED" default="false"/>
             <visualProperty name="EDGE_SOURCE_ARROW_SIZE" default="6.0"/>
             <visualProperty name="EDGE_WIDTH" default="2.0">
-                <continuousMapping attributeType="float" attributeName="RelationNumberOfReferences">
+                <continuousMapping attributeType="float" attributeName="# of Total References">
                     <continuousMappingPoint lesserValue="1.0" greaterValue="0.22556390977443608" equalValue="0.22556390977443608" attrValue="1.0"/>
                     <continuousMappingPoint lesserValue="30.0" greaterValue="1.0" equalValue="30.0" attrValue="35.0"/>
                 </continuousMapping>
@@ -168,12 +166,12 @@
                 <discreteMapping attributeType="string" attributeName="effect">
                     <discreteMappingEntry value="NONE" attributeValue=""/>
                     <discreteMappingEntry value="T" attributeValue="negative"/>
-                    <discreteMappingEntry value="ARROW" attributeValue="directed"/>
-                    <discreteMappingEntry value="ARROW" attributeValue="positive"/>
+                    <discreteMappingEntry value="DELTA" attributeValue="directed"/>
+                    <discreteMappingEntry value="DELTA" attributeValue="positive"/>
                 </discreteMapping>
             </visualProperty>
-            <visualProperty name="EDGE_STROKE_UNSELECTED_PAINT" default="#848484">
-                <discreteMapping attributeType="string" attributeName="ObjectType">
+            <visualProperty name="EDGE_UNSELECTED_PAINT" default="#848484">
+                <discreteMapping attributeType="string" attributeName="Object Type">
                     <discreteMappingEntry value="#9900FF" attributeValue="Binding"/>
                     <discreteMappingEntry value="#CC3300" attributeValue="Biomarker"/>
                     <discreteMappingEntry value="#999999" attributeValue="DirectRegulation"/>

@@ -33,11 +33,9 @@ public class PathwayStudiosImportTaskFactory extends AbstractTaskFactory {
 	public TaskIterator createTaskIterator() {
 		JFileChooser chooser = new JFileChooser();
 		FileFilter filter = new FileFilter() {
-
 			@Override
 			public String getDescription() {
-				// TODO Auto-generated method stub
-				return null;
+				return "CSV files (.csv)";
 			}
 
 			@Override
@@ -45,7 +43,7 @@ public class PathwayStudiosImportTaskFactory extends AbstractTaskFactory {
 				if (f.isDirectory())
 					return true;
 				String ext = getExtension(f);
-				if (ext.startsWith("xls")) {
+				if (ext.startsWith("csv")) {
 					return true;
 				}
 				return false;

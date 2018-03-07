@@ -1,0 +1,25 @@
+Manifest-Version: 1.0
+Bundle-SymbolicName: org.cytoscape.pathway-studio-import
+Built-By: bsettle
+Bundle-ManifestVersion: 2
+Bnd-LastModified: 1520458727341
+Embed-Dependency: *;scope=!provided|test;groupId=!org.cytoscape
+Import-Package: javax.security.auth.x500;resolution:=optional,javax.sw
+ ing;resolution:=optional,javax.swing.filechooser;resolution:=optional
+ ,org.cytoscape.model;version="[3.3,4)";resolution:=optional,org.cytos
+ cape.service.util;version="[3.3,4)";resolution:=optional,org.cytoscap
+ e.session;version="[3.3,4)";resolution:=optional,org.cytoscape.task.r
+ ead;version="[3.3,4)";resolution:=optional,org.cytoscape.view.layout;
+ version="[3.4,4)";resolution:=optional,org.cytoscape.view.model;versi
+ on="[3.3,4)";resolution:=optional,org.cytoscape.view.vizmap;version="
+ [3.3,4)";resolution:=optional,org.cytoscape.work;version="[3.3,4)";re
+ solution:=optional
+Tool: Bnd-1.15.0
+Bundle-Name: Pathway Studios Import
+Bundle-Version: 1.0
+Bundle-ClassPath: .,commons-csv-1.5.jar,org.osgi.core-4.2.0.jar
+Bundle-Activator: org.cytoscape.sample.internal.CyActivator
+Embed-Transitive: true
+Created-By: Apache Maven Bundle Plugin
+Build-Jdk: 1.8.0_131
+
