@@ -2,15 +2,14 @@ package org.cytoscape.sample.internal.task;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Vector;
-
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -19,6 +18,7 @@ import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkFactory;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNode;
+import org.cytoscape.model.CyRow;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.session.CyNetworkNaming;
@@ -47,7 +47,7 @@ public class PathwayStudiosImportTask extends AbstractTask {
 	private CyLayoutAlgorithmManager layoutManager;
 	private Map<String, Integer> headerMap;
 	private Map<String, CyNode> nodeMap;
-	private Map<String, Class> typeMap;
+	private Map<String, String> typeMap;
 
 	private TaskIterator iter;
 
@@ -91,20 +91,7 @@ public class PathwayStudiosImportTask extends AbstractTask {
 		return node;
 	}
 
-	private void parseTypes(CSVRecord record) {
-		for (Entry<String, String> entry : record.toMap().entrySet()) {
-			String val = entry.getValue();
-			if ("Integer".equals(val)) {
-				typeMap.put(entry.getKey(), Integer.class);
-			} else if ("Float".equals(val)) {
-				typeMap.put(entry.getKey(), Float.class);
-			}else{
-				typeMap.put(entry.getKey(), String.class);
-			}
-		}
-	}
-
-	private void addRecord(CyNetwork network, CSVRecord record) throws Exception {
+	private void addRecord(CyNetwork network, CSVRecord record) {
 		Map<String, String> map = record.toMap();
 		String name1 = record.get("Entity 1 Name");
 		String name2 = record.get("Entity 2 Name");
@@ -112,40 +99,54 @@ public class PathwayStudiosImportTask extends AbstractTask {
 		CyNode node1 = getNode(network, name1), node2 = getNode(network, name2);
 		CyEdge edge = network.addEdge(node1, node2, false);
 
-		CyTable nodeTable = network.getDefaultNodeTable();
-		CyTable edgeTable = network.getDefaultEdgeTable();
+		CyRow row;
 
 		for (String header : headerMap.keySet()) {
-			Object value = getValue(header, map.get(header));
-			String headerName = header.substring(9);
 			if (header.startsWith("Entity 1")) {
-				nodeTable.getRow(node1.getSUID()).set(headerName, value);
+				row = network.getDefaultNodeTable().getRow(node1.getSUID());
 			} else if (header.startsWith("Entity 2")) {
-				nodeTable.getRow(node2.getSUID()).set(headerName, value);
+				row = network.getDefaultNodeTable().getRow(node2.getSUID());
 			} else if (header.startsWith("Relation")) {
-				edgeTable.getRow(edge.getSUID()).set(headerName, value);
+				row = network.getDefaultEdgeTable().getRow(edge.getSUID());
 			} else {
 				System.out.println("Unrecognized header: " + header);
+				continue;
+			}
+			try{
+				setValue(row, header, map.get(header));
+			}catch(Exception e){
+				System.out.println("Failed to set " + header + " to " + map.get(header) + " as " + typeMap.get(header));
 			}
 		}
 	}
 
-	private Object getValue(String header, String value) {
-		Class c = typeMap.getOrDefault(header, String.class);
-		if (c == Integer.class) {
-			return Integer.parseInt(value);
-		} else if (c == Double.class) {
-			return Double.parseDouble(value);
-		} else if (c == Float.class) {
-			return Float.parseFloat(value);
-		} else if (c == Boolean.class) {
-			return Boolean.parseBoolean(value);
+	private void setValue(CyRow row, String header, String valueStr) throws Exception {
+		String type = typeMap.getOrDefault(header, "String");
+		String headerName = header.substring(9);
+		Object value = valueStr;
+		if (type.endsWith("List")) {
+			if (type.startsWith("Number")) {
+				ArrayList<Integer> nums = new ArrayList<Integer>();
+				for (String s : valueStr.split(";")) {
+					nums.add(Integer.parseInt(s));
+				}
+				value = nums;
+			} else {
+				ArrayList<String> strs = new ArrayList<String>();
+				for (String s : valueStr.split(";")) {
+					strs.add(s);
+				}
+				value = strs;
+			}
+		} else if (type.startsWith("Number")) {
+			value = Integer.parseInt(valueStr);
 		}
-		return value;
+
+		row.set(headerName, value);
 	}
 
 	@Override
-	public void run(TaskMonitor tm) throws Exception {
+	public void run(TaskMonitor tm) throws IOException {
 
 		tm.setTitle("Loading Pathway Studios File");
 		tm.setProgress(0.0);
@@ -156,22 +157,16 @@ public class PathwayStudiosImportTask extends AbstractTask {
 		FileReader reader = new FileReader(file);
 		CSVParser parser = new CSVParser(reader, CSVFormat.EXCEL.withFirstRecordAsHeader());
 		headerMap = parser.getHeaderMap();
-		
+
 		nodeMap = new HashMap<String, CyNode>();
-		typeMap = new HashMap<String, Class>();
-		typeMap.put("Relation # of Total References", Integer.class);
-		createColumns(network);
 
 		Iterator<CSVRecord> records = parser.iterator();
-		int recordNum = 1; // TODO: Change to 0 when the second row is types
+		typeMap = records.next().toMap();
+		createColumns(network);
+
 		while (records.hasNext()) {
 			CSVRecord record = records.next();
-			recordNum++;
-			if (recordNum == 0) {
-				parseTypes(record);
-			} else {
-				addRecord(network, record);
-			}
+			addRecord(network, record);
 		}
 		parser.close();
 
@@ -189,19 +184,38 @@ public class PathwayStudiosImportTask extends AbstractTask {
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
+	public Class getType(String type) {
+		if (type.startsWith("Number"))
+			return Integer.class;
+		return String.class;
+	}
+
 	@SuppressWarnings("unchecked")
+	private void createColumn(CyTable table, String fullName) {
+		// remove "Entity # " or "Relation "
+		String name = fullName.substring(9);
+		String type = typeMap.get(fullName);
+
+		if (table.getColumn(name) == null) {
+			if (type.endsWith("List")) {
+				table.createListColumn(name, getType(type), false);
+			} else {
+				table.createColumn(name, getType(type), false);
+			}
+		}
+
+	}
+
 	private void createColumns(CyNetwork network) {
 		CyTable nodeTable = network.getDefaultNodeTable();
 		CyTable edgeTable = network.getDefaultEdgeTable();
 
 		for (String header : headerMap.keySet()) {
-			String headerName = header.substring(9);
 			if (header.startsWith("Entity")) {
-				if (nodeTable.getColumn(headerName) == null)
-					nodeTable.createColumn(headerName, typeMap.getOrDefault(header, String.class), false);
+				createColumn(nodeTable, header);
 			} else if (header.startsWith("Relation")) {
-				if (edgeTable.getColumn(headerName) == null)
-					edgeTable.createColumn(headerName, typeMap.getOrDefault(header, String.class), false);
+				createColumn(edgeTable, header);
 			}
 		}
 	}

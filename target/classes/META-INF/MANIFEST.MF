@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-SymbolicName: org.cytoscape.pathway-studio-import
 Built-By: bsettle
 Bundle-ManifestVersion: 2
-Bnd-LastModified: 1520458727341
+Bnd-LastModified: 1520553054562
 Embed-Dependency: *;scope=!provided|test;groupId=!org.cytoscape
 Import-Package: javax.security.auth.x500;resolution:=optional,javax.sw
  ing;resolution:=optional,javax.swing.filechooser;resolution:=optional
