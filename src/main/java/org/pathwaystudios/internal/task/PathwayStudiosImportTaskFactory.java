@@ -1,4 +1,4 @@
-package org.cytoscape.sample.internal.task;
+package org.pathwaystudios.internal.task;
 
 import java.io.File;
 
@@ -15,7 +15,6 @@ public class PathwayStudiosImportTaskFactory extends AbstractTaskFactory {
 
 	public PathwayStudiosImportTaskFactory(final CyServiceRegistrar serviceRegistrar) {
 		servicer = serviceRegistrar;
-		
 	}
 
 	public static String getExtension(File f) {
@@ -50,11 +49,13 @@ public class PathwayStudiosImportTaskFactory extends AbstractTaskFactory {
 			}
 		};
 		chooser.setFileFilter(filter);
-		chooser.showOpenDialog(null);
-		File file = chooser.getSelectedFile();
-		TaskIterator iter = new TaskIterator();
-		iter.append(
-				new PathwayStudiosImportTask(file, servicer, iter));
+		File file = null;
+		if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+			file = chooser.getSelectedFile();
+		}
+		
+		PathwayStudiosImportTask psit = new PathwayStudiosImportTask(file, servicer);
+		TaskIterator iter = new TaskIterator(psit);
 		
 		return iter;
 	}

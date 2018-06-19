@@ -31,7 +31,7 @@
                 </discreteMapping>
             </visualProperty>
             <visualProperty name="NODE_SIZE" default="35.0"/>
-            <visualProperty name="NODE_BORDER_PAINT" default="#CCCCCC"/>
+            <visualProperty name="NODE_BORDER_PAINT" default="#FF0000"/>
             <visualProperty name="NODE_CUSTOMPAINT_8" default="DefaultVisualizableVisualProperty(id=NODE_CUSTOMPAINT_8, name=Node Custom Paint 8)"/>
             <visualProperty name="NODE_X_LOCATION" default="0.0"/>
             <visualProperty name="NODE_CUSTOMGRAPHICS_POSITION_9" default="C,C,c,0.00,0.00"/>
@@ -58,7 +58,12 @@
             <visualProperty name="NODE_CUSTOMGRAPHICS_3" default="org.cytoscape.ding.customgraphics.NullCustomGraphics,0,[ Remove Graphics ],"/>
             <visualProperty name="NODE_CUSTOMPAINT_7" default="DefaultVisualizableVisualProperty(id=NODE_CUSTOMPAINT_7, name=Node Custom Paint 7)"/>
             <visualProperty name="NODE_CUSTOMGRAPHICS_5" default="org.cytoscape.ding.customgraphics.NullCustomGraphics,0,[ Remove Graphics ],"/>
-            <visualProperty name="NODE_BORDER_WIDTH" default="0.0"/>
+            <visualProperty name="NODE_BORDER_WIDTH" default="0.0">
+							<discreteMapping attributeType="boolean" attributeName="selected">
+									<discreteMappingEntry value="5.0" attributeValue="true"/>
+									<discreteMappingEntry value="0.0" attributeValue="false"/>
+							</discreteMapping>
+						</visualProperty>
             <visualProperty name="NODE_CUSTOMPAINT_3" default="DefaultVisualizableVisualProperty(id=NODE_CUSTOMPAINT_3, name=Node Custom Paint 3)"/>
             <visualProperty name="NODE_CUSTOMPAINT_4" default="DefaultVisualizableVisualProperty(id=NODE_CUSTOMPAINT_4, name=Node Custom Paint 4)"/>
             <visualProperty name="NODE_CUSTOMGRAPHICS_2" default="org.cytoscape.ding.customgraphics.NullCustomGraphics,0,[ Remove Graphics ],"/>

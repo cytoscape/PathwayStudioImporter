@@ -1,4 +1,4 @@
-package org.cytoscape.sample.internal.task;
+package org.pathwaystudios.internal.task;
 
 import java.io.File;
 import java.io.FileReader;
@@ -21,7 +21,6 @@ import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyRow;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.service.util.CyServiceRegistrar;
-import org.cytoscape.session.CyNetworkNaming;
 import org.cytoscape.task.read.LoadVizmapFileTaskFactory;
 import org.cytoscape.view.layout.CyLayoutAlgorithm;
 import org.cytoscape.view.layout.CyLayoutAlgorithmManager;
@@ -32,14 +31,12 @@ import org.cytoscape.view.model.View;
 import org.cytoscape.view.vizmap.VisualMappingManager;
 import org.cytoscape.view.vizmap.VisualStyle;
 import org.cytoscape.work.AbstractTask;
-import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
 
 public class PathwayStudiosImportTask extends AbstractTask {
 	private File file;
 	private CyNetworkManager netManager;
 	private CyNetworkFactory netFactory;
-	private CyNetworkNaming namingUtil;
 	private CyNetworkViewFactory viewFactory;
 	private CyNetworkViewManager viewManager;
 	private LoadVizmapFileTaskFactory vizmapLoader;
@@ -49,11 +46,9 @@ public class PathwayStudiosImportTask extends AbstractTask {
 	private Map<String, CyNode> nodeMap;
 	private Map<String, String> typeMap;
 
-	private TaskIterator iter;
 
-	public PathwayStudiosImportTask(final File file, final CyServiceRegistrar serviceRegistrar, TaskIterator iter) {
+	public PathwayStudiosImportTask(final File file, final CyServiceRegistrar serviceRegistrar) {
 		netManager = serviceRegistrar.getService(CyNetworkManager.class);
-		namingUtil = serviceRegistrar.getService(CyNetworkNaming.class);
 		netFactory = serviceRegistrar.getService(CyNetworkFactory.class);
 		viewFactory = serviceRegistrar.getService(CyNetworkViewFactory.class);
 		viewManager = serviceRegistrar.getService(CyNetworkViewManager.class);
@@ -62,23 +57,29 @@ public class PathwayStudiosImportTask extends AbstractTask {
 		layoutManager = serviceRegistrar.getService(CyLayoutAlgorithmManager.class);
 
 		this.file = file;
-		this.iter = iter;
 	}
 
 	public CyNetworkView buildCyNetworkView(CyNetwork net) {
 		final CyNetworkView view = viewFactory.createNetworkView(net);
 		viewManager.addNetworkView(view);
-		InputStream f = getClass().getResourceAsStream("/pathway_style.xml");
 
-		Set<VisualStyle> vsSet = vizmapLoader.loadStyles(f);
-		for (VisualStyle s : vsSet) {
-			vmm.addVisualStyle(s);
-			vmm.setVisualStyle(s, view);
-
-			// s.apply(view);
+		VisualStyle vs = null;
+		for (VisualStyle style : vmm.getAllVisualStyles()) {
+			if (style.getTitle().startsWith("Pathway Studios Style")) {
+				vs = style;
+				break;
+			}
 		}
+		if (vs == null) {
+			InputStream f = getClass().getResourceAsStream("/pathway_style.xml");
+			Set<VisualStyle> vsSet = vizmapLoader.loadStyles(f);
+			vs = vsSet.iterator().next();
+			vmm.addVisualStyle(vs);
+			vs.setTitle("Pathway Studios Style");
+		}
+		
+		vmm.setVisualStyle(vs, view);
 		view.updateView();
-
 		return view;
 	}
 
@@ -112,23 +113,31 @@ public class PathwayStudiosImportTask extends AbstractTask {
 				System.out.println("Unrecognized header: " + header);
 				continue;
 			}
-			try{
+			try {
 				setValue(row, header, map.get(header));
-			}catch(Exception e){
+			} catch (Exception e) {
 				System.out.println("Failed to set " + header + " to " + map.get(header) + " as " + typeMap.get(header));
 			}
 		}
 	}
 
 	private void setValue(CyRow row, String header, String valueStr) throws Exception {
+		if (valueStr.isEmpty())
+			return;
 		String type = typeMap.getOrDefault(header, "String");
 		String headerName = header.substring(9);
 		Object value = valueStr;
 		if (type.endsWith("List")) {
-			if (type.startsWith("Number")) {
+			if (type.startsWith("Integer")) {
 				ArrayList<Integer> nums = new ArrayList<Integer>();
 				for (String s : valueStr.split(";")) {
 					nums.add(Integer.parseInt(s));
+				}
+				value = nums;
+			} else if (type.startsWith("Float")) {
+				ArrayList<Double> nums = new ArrayList<Double>();
+				for (String s : valueStr.split(";")) {
+					nums.add(Double.parseDouble(s));
 				}
 				value = nums;
 			} else {
@@ -138,8 +147,10 @@ public class PathwayStudiosImportTask extends AbstractTask {
 				}
 				value = strs;
 			}
-		} else if (type.startsWith("Number")) {
+		} else if (type.startsWith("Integer")) {
 			value = Integer.parseInt(valueStr);
+		} else if (type.startsWith("Float")) {
+			value = Double.parseDouble(valueStr);
 		}
 
 		row.set(headerName, value);
@@ -147,7 +158,10 @@ public class PathwayStudiosImportTask extends AbstractTask {
 
 	@Override
 	public void run(TaskMonitor tm) throws IOException {
-
+		if (file == null || !file.isFile()) {
+			return;
+		}
+		
 		tm.setTitle("Loading Pathway Studios File");
 		tm.setProgress(0.0);
 		tm.setStatusMessage("Loading file...");
@@ -161,6 +175,11 @@ public class PathwayStudiosImportTask extends AbstractTask {
 		nodeMap = new HashMap<String, CyNode>();
 
 		Iterator<CSVRecord> records = parser.iterator();
+		if (!records.hasNext()) {
+			parser.close();
+			reader.close();
+			return;
+		}
 		typeMap = records.next().toMap();
 		createColumns(network);
 
@@ -179,14 +198,15 @@ public class PathwayStudiosImportTask extends AbstractTask {
 		CyLayoutAlgorithm algor = layoutManager.getDefaultLayout();
 		boolean ready = algor.isReady(view, algor.createLayoutContext(), views, "name");
 		if (ready) {
-			TaskIterator ti = algor.createTaskIterator(view, algor.createLayoutContext(), views, "name");
-			iter.append(ti);
+			insertTasksAfterCurrentTask(algor.createTaskIterator(view, algor.createLayoutContext(), views, "name"));
 		}
 	}
 
 	@SuppressWarnings("rawtypes")
 	public Class getType(String type) {
-		if (type.startsWith("Number"))
+		if (type.startsWith("Float"))
+			return Double.class;
+		else if (type.startsWith("Integer"))
 			return Integer.class;
 		return String.class;
 	}
@@ -204,7 +224,6 @@ public class PathwayStudiosImportTask extends AbstractTask {
 				table.createColumn(name, getType(type), false);
 			}
 		}
-
 	}
 
 	private void createColumns(CyNetwork network) {

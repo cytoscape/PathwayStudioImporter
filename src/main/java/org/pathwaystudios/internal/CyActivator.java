@@ -1,9 +1,9 @@
- package org.cytoscape.sample.internal;
+ package org.pathwaystudios.internal;
 
 import org.cytoscape.work.TaskFactory;
 
 import org.osgi.framework.BundleContext;
-import org.cytoscape.sample.internal.task.PathwayStudiosImportTaskFactory;
+import org.pathwaystudios.internal.task.PathwayStudiosImportTaskFactory;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.service.util.CyServiceRegistrar;
 
