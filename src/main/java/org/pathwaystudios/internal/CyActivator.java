@@ -20,7 +20,7 @@ public class CyActivator extends AbstractCyActivator {
 		PathwayStudiosImportTaskFactory factory = new PathwayStudiosImportTaskFactory(serviceRegistrar);
 		Properties props = new Properties();
 		props.setProperty("preferredMenu", "Apps");
-		props.setProperty("title", "Pathway Studios Import");
+		props.setProperty("title", "Pathway Studio Import");
 		registerService(bc, factory, TaskFactory.class, props);
 
 	}

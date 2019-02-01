@@ -34,7 +34,7 @@ public class PathwayStudiosImportTaskFactory extends AbstractTaskFactory {
 		FileFilter filter = new FileFilter() {
 			@Override
 			public String getDescription() {
-				return "CSV files (.csv)";
+				return "Relation Table file (.csv)";
 			}
 
 			@Override

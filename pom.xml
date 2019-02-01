@@ -15,7 +15,7 @@
 	<packaging>bundle</packaging>
 	<version>1.0</version>
 
-	<name>Pathway Studios Import</name>
+	<name>Pathway Studio Importer</name>
 
 	<repositories>
 		<repository>
