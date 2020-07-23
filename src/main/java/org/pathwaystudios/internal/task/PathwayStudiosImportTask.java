@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -92,20 +93,27 @@ public class PathwayStudiosImportTask extends AbstractTask {
 		return node;
 	}
 
-	private void addRecord(CyNetwork network, CSVRecord record) {
+	private static String withPrefix(boolean useSpace, int entityNumber, String suffix) {
+		return "Entity" + (useSpace ? " " : "") + entityNumber + suffix; 
+	}
+	
+	private void addRecord(CyNetwork network, CSVRecord record, boolean useSpace) {
 		Map<String, String> map = record.toMap();
-		String name1 = record.get("Entity 1 Name");
-		String name2 = record.get("Entity 2 Name");
+		//String name1 = record.get("Entity 1 Name");
+		//String name2 = record.get("Entity 2 Name");
+		String name1 = record.get(withPrefix(useSpace, 1, " Name"));
+		String name2 = record.get(withPrefix(useSpace, 2, " Name"));
 
+		
 		CyNode node1 = getNode(network, name1), node2 = getNode(network, name2);
 		CyEdge edge = network.addEdge(node1, node2, false);
 
 		CyRow row;
 
 		for (String header : headerMap.keySet()) {
-			if (header.startsWith("Entity 1")) {
+			if (header.startsWith(withPrefix(useSpace, 1, ""))) {
 				row = network.getDefaultNodeTable().getRow(node1.getSUID());
-			} else if (header.startsWith("Entity 2")) {
+			} else if (header.startsWith(withPrefix(useSpace, 2, ""))) {
 				row = network.getDefaultNodeTable().getRow(node2.getSUID());
 			} else if (header.startsWith("Relation")) {
 				row = network.getDefaultEdgeTable().getRow(edge.getSUID());
@@ -114,18 +122,19 @@ public class PathwayStudiosImportTask extends AbstractTask {
 				continue;
 			}
 			try {
-				setValue(row, header, map.get(header));
+				setValue(row, header, map.get(header), useSpace);
 			} catch (Exception e) {
 				System.out.println("Failed to set " + header + " to " + map.get(header) + " as " + typeMap.get(header));
+				e.printStackTrace();
 			}
 		}
 	}
 
-	private void setValue(CyRow row, String header, String valueStr) throws Exception {
+	private void setValue(CyRow row, String header, String valueStr, final boolean useSpace) throws Exception {
 		if (valueStr.isEmpty())
 			return;
 		String type = typeMap.getOrDefault(header, "String");
-		String headerName = header.substring(9);
+		String headerName = header.substring(useSpace ? 9 : 8);
 		Object value = valueStr;
 		if (type.endsWith("List")) {
 			if (type.startsWith("Integer")) {
@@ -157,7 +166,7 @@ public class PathwayStudiosImportTask extends AbstractTask {
 	}
 
 	@Override
-	public void run(TaskMonitor tm) throws IOException {
+	public void run(TaskMonitor tm) throws IOException, Exception {
 		if (file == null || !file.isFile()) {
 			return;
 		}
@@ -171,7 +180,23 @@ public class PathwayStudiosImportTask extends AbstractTask {
 		FileReader reader = new FileReader(file);
 		CSVParser parser = new CSVParser(reader, CSVFormat.EXCEL.withFirstRecordAsHeader());
 		headerMap = parser.getHeaderMap();
-
+		
+		final boolean containsSpaceHeader =  headerMap.keySet().stream().filter((key) -> key.startsWith("Entity 1")).findAny().isPresent();
+		final boolean containsNoSpaceHeader = headerMap.keySet().stream().filter((key) -> key.startsWith("Entity1")).findAny().isPresent();
+		
+		final boolean useSpace;
+		if (containsSpaceHeader && containsNoSpaceHeader)
+		{
+			parser.close();
+			throw new Exception("Multiple format headers detected.");
+		} else if (containsSpaceHeader) {
+			useSpace = true;
+		} else if (containsNoSpaceHeader) {
+			useSpace = false;
+		} else {
+			parser.close();
+			throw new Exception("Unable to detect header format");
+		}
 		nodeMap = new HashMap<String, CyNode>();
 
 		Iterator<CSVRecord> records = parser.iterator();
@@ -181,11 +206,11 @@ public class PathwayStudiosImportTask extends AbstractTask {
 			return;
 		}
 		typeMap = records.next().toMap();
-		createColumns(network);
+		createColumns(network, useSpace);
 
 		while (records.hasNext()) {
 			CSVRecord record = records.next();
-			addRecord(network, record);
+			addRecord(network, record, useSpace);
 		}
 		parser.close();
 
@@ -212,9 +237,9 @@ public class PathwayStudiosImportTask extends AbstractTask {
 	}
 
 	@SuppressWarnings("unchecked")
-	private void createColumn(CyTable table, String fullName) {
+	private void createColumn(CyTable table, String fullName, final boolean useSpace) {
 		// remove "Entity # " or "Relation "
-		String name = fullName.substring(9);
+		String name = fullName.substring(useSpace ? 9 : 8);
 		String type = typeMap.get(fullName);
 
 		if (table.getColumn(name) == null) {
@@ -226,15 +251,15 @@ public class PathwayStudiosImportTask extends AbstractTask {
 		}
 	}
 
-	private void createColumns(CyNetwork network) {
+	private void createColumns(CyNetwork network, final boolean useSpace) {
 		CyTable nodeTable = network.getDefaultNodeTable();
 		CyTable edgeTable = network.getDefaultEdgeTable();
 
 		for (String header : headerMap.keySet()) {
 			if (header.startsWith("Entity")) {
-				createColumn(nodeTable, header);
+				createColumn(nodeTable, header, useSpace);
 			} else if (header.startsWith("Relation")) {
-				createColumn(edgeTable, header);
+				createColumn(edgeTable, header, useSpace);
 			}
 		}
 	}
